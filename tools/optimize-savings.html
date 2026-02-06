@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Optimize My Savings | JNG Tax & Advisory</title>
+  <meta name="description" content="Enter what you can save each month and see how to optimally allocate across emergency fund, debt payoff, retirement, college, and taxable savings.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+:root {
+  --navy: #1e3a5f;
+  --navy-light: #2d5a8a;
+  --navy-dark: #0f2440;
+  --blue-accent: #3b7bbf;
+  --cream: #faf8f5;
+  --white: #ffffff;
+  --gray-100: #f7f7f7;
+  --gray-200: #e8e8e8;
+  --gray-400: #999999;
+  --gray-600: #666666;
+  --gray-800: #333333;
+  --text: #2a2a2a;
+  --green: #2e7d32;
+  --red: #c62828;
+  --orange: #e65100;
+  --purple: #5e35b1;
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-body: 'Source Sans 3', -apple-system, sans-serif;
+  --max-width: 1200px;
+  --transition: 0.3s ease;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--text);
+  background: var(--cream);
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 500; line-height: 1.2; color: var(--navy-dark); }
+
+/* Header */
+.site-header {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+  background: var(--white);
+  border-bottom: 1px solid var(--gray-200);
+  box-shadow: 0 2px 20px rgba(0,0,0,0.06);
+}
+.site-header nav {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 1rem 2rem; max-width: var(--max-width); margin: 0 auto;
+}
+.logo {
+  display: flex; align-items: center; gap: 0.75rem;
+  font-family: var(--font-display); font-size: 1.3rem; font-weight: 500;
+  color: var(--navy); text-decoration: none;
+}
+.logo-icon {
+  width: 36px; height: 36px; background: var(--navy); border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+}
+.logo-icon svg { width: 20px; height: 20px; fill: var(--white); }
+.nav-links { display: flex; gap: 2.5rem; list-style: none; align-items: center; }
+.nav-links a {
+  font-size: 0.95rem; font-weight: 500; color: var(--gray-600);
+  text-transform: uppercase; letter-spacing: 0.05em; text-decoration: none;
+  padding: 0.5rem 0; position: relative; transition: color var(--transition);
+}
+.nav-links a::after {
+  content: ''; position: absolute; bottom: 0; left: 0;
+  width: 0; height: 2px; background: var(--navy); transition: width var(--transition);
+}
+.nav-links a:hover, .nav-links a.active { color: var(--navy); }
+.nav-links a:hover::after, .nav-links a.active::after { width: 100%; }
+.nav-cta {
+  background: var(--navy) !important; color: var(--white) !important;
+  padding: 0.65rem 1.25rem !important; border-radius: 4px;
+  text-transform: none !important; letter-spacing: 0 !important;
+}
+.nav-cta::after { display: none !important; }
+.nav-cta:hover { background: var(--navy-light) !important; }
+.menu-toggle { display: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 0.5rem; background: none; border: none; }
+.menu-toggle span { width: 25px; height: 2px; background: var(--navy); transition: var(--transition); }
+
+/* Loading Bar */
+.loading-bar {
+  position: fixed;
+  top: 72px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--blue-accent), var(--navy), var(--blue-accent));
+  background-size: 200% 100%;
+  animation: loading 1.5s ease-in-out infinite;
+  z-index: 999;
+}
+@keyframes loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Slider */
+.jng-slider {
+  -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px;
+  background: var(--gray-200); outline: none; cursor: pointer;
+}
+.jng-slider::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%;
+  background: var(--blue-accent); cursor: pointer; box-shadow: 0 2px 6px rgba(30,58,95,0.25);
+}
+.jng-slider::-moz-range-thumb {
+  width: 20px; height: 20px; border-radius: 50%;
+  background: var(--blue-accent); cursor: pointer; border: none;
+}
+.jng-slider.hero-slider { height: 8px; background: rgba(255,255,255,0.2); }
+.jng-slider.hero-slider::-webkit-slider-thumb { width: 28px; height: 28px; background: var(--white); box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+.jng-slider.hero-slider::-moz-range-thumb { width: 28px; height: 28px; background: var(--white); }
+
+/* Footer */
+.site-footer { background: var(--gray-100); padding: 3rem 0 1.5rem; border-top: 1px solid var(--gray-200); }
+.site-footer .container { max-width: var(--max-width); margin: 0 auto; padding: 0 2rem; }
+.footer-content { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 3rem; margin-bottom: 2rem; }
+.footer-brand p { color: var(--gray-600); max-width: 300px; margin-top: 0.75rem; font-size: 0.95rem; }
+.footer-links h4 { font-family: var(--font-body); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1rem; color: var(--gray-800); }
+.footer-links ul { list-style: none; }
+.footer-links li { margin-bottom: 0.5rem; }
+.footer-links a { color: var(--gray-600); text-decoration: none; font-size: 0.95rem; }
+.footer-links a:hover { color: var(--navy); }
+.footer-bottom { padding-top: 1.5rem; border-top: 1px solid var(--gray-200); display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--gray-600); }
+
+@media (max-width: 900px) {
+  .nav-links { display: none; }
+  .nav-links.active { display: flex; flex-direction: column; position: absolute; top: 100%; left: 0; right: 0; background: var(--white); padding: 1rem 2rem; border-bottom: 1px solid var(--gray-200); gap: 0; }
+  .nav-links.active li { padding: 0.75rem 0; }
+  .menu-toggle { display: flex; }
+  .footer-content { grid-template-columns: 1fr; gap: 2rem; }
+  .footer-bottom { flex-direction: column; gap: 0.5rem; text-align: center; }
+}
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="site-header">
+    <nav>
+      <a href="../index.html" class="logo">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24"><rect x="4" y="14" width="4" height="6"/><rect x="10" y="10" width="4" height="10"/><rect x="16" y="6" width="4" height="14"/></svg>
+        </div>
+        JNG Tax & Advisory
+      </a>
+      <ul class="nav-links" id="nav-links">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="../pricing.html">Pricing</a></li>
+        <li><a href="../about.html">About</a></li>
+        <li><a href="../tools.html" class="active">Tools & Insights</a></li>
+        <li><a href="https://calendly.com/jngtaxadvisory/15-minute-consultation" class="nav-cta" target="_blank">Get in Touch</a></li>
+      </ul>
+      <button class="menu-toggle" id="menu-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+    </nav>
+  </header>
+
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef, useMemo } = React;
+
+    // Design Tokens
+    const T = {
+      navy: '#1e3a5f', navyLight: '#2d5a8a', navyDark: '#0f2440',
+      blue: '#3b7bbf', cream: '#faf8f5', white: '#ffffff',
+      g100: '#f7f7f7', g200: '#e8e8e8', g400: '#999999', g600: '#666666', g800: '#333333',
+      text: '#2a2a2a', green: '#2e7d32', greenLt: '#e8f5e9',
+      red: '#c62828', redLt: '#ffebee', orange: '#e65100', orangeLt: '#fff3e0',
+      purple: '#5e35b1', purpleLt: '#ede7f6',
+      fontDisplay: "'Playfair Display', Georgia, serif",
+      fontBody: "'Source Sans 3', -apple-system, sans-serif",
+    };
+
+    const fmt = v => '$' + Math.round(v).toLocaleString();
+    const fmtK = v => v >= 1e6 ? '$' + (v/1e6).toFixed(1) + 'M' : v >= 1e3 ? '$' + (v/1e3).toFixed(0) + 'K' : fmt(v);
+
+    // UI Components
+    const Slider = ({ label, value, onChange, min, max, step=1, unit='$', desc }) => (
+      <div style={{ marginBottom: 16 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 3 }}>
+          <span style={{ fontSize: 13, color: T.g600, fontWeight: 500 }}>{label}</span>
+          <span style={{ fontSize: 16, fontWeight: 700, color: T.navy }}>
+            {unit === '$' ? fmt(value) : unit === '%' ? value.toFixed(1)+'%' : value + (unit||'')}
+          </span>
+        </div>
+        {desc && <div style={{ fontSize: 11, color: T.g400, marginBottom: 3 }}>{desc}</div>}
+        <input type="range" className="jng-slider" min={min} max={max} step={step} value={value}
+          onChange={e => onChange(Number(e.target.value))} />
+      </div>
+    );
+
+    const Toggle = ({ label, value, onChange }) => (
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+        <span style={{ fontSize: 13, color: T.g600, fontWeight: 500 }}>{label}</span>
+        <button onClick={() => onChange(!value)}
+          style={{ position: 'relative', width: 40, height: 22, borderRadius: 11, border: 'none',
+            background: value ? T.blue : T.g200, cursor: 'pointer', transition: 'background 0.2s' }}>
+          <span style={{ position: 'absolute', top: 3, width: 16, height: 16, borderRadius: 8,
+            background: T.white, transition: 'left 0.15s', left: value ? 21 : 3,
+            boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
+        </button>
+      </div>
+    );
+
+    const Card = ({ title, children, style={} }) => (
+      <div style={{ background: T.white, borderRadius: 8, padding: '16px 20px',
+        boxShadow: '0 1px 6px rgba(0,0,0,0.05)', border: '1px solid ' + T.g200, ...style }}>
+        {title && <h3 style={{ fontFamily: T.fontDisplay, fontSize: 16, fontWeight: 500, color: T.navyDark,
+          marginBottom: 14, paddingBottom: 8, borderBottom: '1px solid ' + T.g200 }}>{title}</h3>}
+        {children}
+      </div>
+    );
+
+    const ChartCanvas = ({ type, data, options, height=200 }) => {
+      const ref = useRef(null), ch = useRef(null);
+      useEffect(() => {
+        ch.current?.destroy();
+        ch.current = new window.Chart(ref.current.getContext('2d'), { type, data, options });
+        return () => ch.current?.destroy();
+      }, [JSON.stringify(data)]);
+      return <div style={{ height }}><canvas ref={ref} /></div>;
+    };
+
+    // Main App
+    const Planner = () => {
+      const [income, setIncome] = useState(95000);
+      const [monthlyBudget, setMonthlyBudget] = useState(1500);
+      const [emergencyBal, setEmergencyBal] = useState(2000);
+      const [retirementBal, setRetirementBal] = useState(45000);
+      const [collegeBal, setCollegeBal] = useState(5000);
+      const [brokerageBal, setBrokerageBal] = useState(3000);
+      const [emergencyMonths, setEmergencyMonths] = useState(3);
+      const [ccBal, setCcBal] = useState(8000);
+      const [ccApr, setCcApr] = useState(22);
+      const [ccPayoffYears, setCcPayoffYears] = useState(2);
+      const [slBal, setSlBal] = useState(35000);
+      const [slApr, setSlApr] = useState(6.5);
+      const [slPayoffYears, setSlPayoffYears] = useState(10);
+      const [autoBal, setAutoBal] = useState(12000);
+      const [autoApr, setAutoApr] = useState(7.5);
+      const [autoPayoffYears, setAutoPayoffYears] = useState(4);
+      const [currentAge, setCurrentAge] = useState(35);
+      const [retireAge, setRetireAge] = useState(65);
+      const [retireIncomePct, setRetireIncomePct] = useState(80);
+      const [lifeExpectancy, setLifeExpectancy] = useState(90);
+      const [has401k, setHas401k] = useState(true);
+      const [matchPercent, setMatchPercent] = useState(50);
+      const [matchUpTo, setMatchUpTo] = useState(6);
+      const [hasKids, setHasKids] = useState(true);
+      const [numKids, setNumKids] = useState(2);
+      const [kidAges, setKidAges] = useState([10, 6, 0, 0, 0]);
+      const [collegeCostYear, setCollegeCostYear] = useState(40000);
+      const [collegeYears, setCollegeYears] = useState(4);
+      const updateKidAge = (i, v) => { const a = [...kidAges]; a[i] = v; setKidAges(a); };
+
+      // Results state
+      const [results, setResults] = useState(null);
+      const [loading, setLoading] = useState(false);
+      const debounceRef = useRef(null);
+
+      // API call (debounced)
+      useEffect(() => {
+        clearTimeout(debounceRef.current);
+        debounceRef.current = setTimeout(async () => {
+          setLoading(true);
+          try {
+            const res = await fetch('/.netlify/functions/optimize-calculate', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                income, monthlyBudget,
+                emergencyBal, emergencyMonths,
+                ccBal, ccApr, ccPayoffYears,
+                slBal, slApr, slPayoffYears,
+                autoBal, autoApr, autoPayoffYears,
+                currentAge, retireAge, retireIncomePct, lifeExpectancy,
+                retirementBal, has401k, matchPercent, matchUpTo,
+                hasKids, numKids, kidAges: kidAges.slice(0, numKids),
+                collegeCostYear, collegeYears, collegeBal,
+                brokerageBal
+              })
+            });
+            const data = await res.json();
+            setResults(data);
+          } catch (e) {
+            console.error('Calculation error:', e);
+          }
+          setLoading(false);
+        }, 250);
+      }, [income, monthlyBudget, emergencyBal, emergencyMonths, retirementBal, collegeBal, brokerageBal,
+        ccBal, ccApr, ccPayoffYears, slBal, slApr, slPayoffYears, autoBal, autoApr, autoPayoffYears,
+        currentAge, retireAge, retireIncomePct, lifeExpectancy, has401k, matchPercent, matchUpTo,
+        hasKids, numKids, kidAges, collegeCostYear, collegeYears]);
+
+      // Chart data
+      const chartData = useMemo(() => {
+        if (!results?.timeline || results.timeline.length < 2) return null;
+        const tl = results.timeline;
+        return {
+          labels: tl.map(t => `Age ${t.age}`),
+          datasets: [
+            { label: 'Net Worth', data: tl.map(t => t.netWorth), borderColor: T.navy, backgroundColor: T.navy+'18', fill: true, tension: 0.3, pointRadius: 0, borderWidth: 2.5 },
+            { label: 'Retirement', data: tl.map(t => t.retirement), borderColor: T.blue, backgroundColor: 'transparent', tension: 0.3, pointRadius: 0, borderWidth: 1.5, borderDash: [6,3] },
+            { label: 'Debt', data: tl.map(t => -t.totalDebt), borderColor: T.red, backgroundColor: 'transparent', tension: 0.3, pointRadius: 0, borderWidth: 1.5, borderDash: [4,4] },
+          ]
+        };
+      }, [results?.timeline]);
+
+      const chartOpts = { responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom', labels: { font: { family: "'Source Sans 3'" }, usePointStyle: true, padding: 14 } } },
+        scales: { x: { grid: { display: false }, ticks: { font: { size: 11 }, maxTicksLimit: 10 } },
+          y: { grid: { color: '#e8e8e8' }, ticks: { font: { size: 11 }, callback: v => fmtK(v) } } }
+      };
+
+      // Allocation chart (first month)
+      const allocData = useMemo(() => {
+        if (!results?.firstAlloc) return null;
+        const a = results.firstAlloc;
+        const items = [];
+        if (a.emergency > 0) items.push({ label: 'Emergency', value: a.emergency, color: T.green });
+        for (const [name, val] of Object.entries(a.debts || {})) { if (val > 0) items.push({ label: name, value: val, color: name.includes('Credit') ? T.red : name.includes('Auto') ? T.orange : T.purple }); }
+        if (a.match401k > 0) items.push({ label: '401(k)', value: a.match401k, color: T.blue });
+        if (a.college > 0) items.push({ label: 'College', value: a.college, color: '#6fa3d4' });
+        if (a.retirement > 0) items.push({ label: 'Retirement (extra)', value: a.retirement, color: T.navyLight });
+        if (a.brokerage > 0) items.push({ label: 'Brokerage', value: a.brokerage, color: T.g600 });
+        return { labels: items.map(i => i.label), datasets: [{ data: items.map(i => Math.round(i.value)), backgroundColor: items.map(i => i.color), borderWidth: 0 }] };
+      }, [results?.firstAlloc]);
+
+      const pieOpts = { responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'right', labels: { font: { family: "'Source Sans 3'", size: 12 }, usePointStyle: true, padding: 8 } },
+          tooltip: { callbacks: { label: ctx => ctx.label + ': ' + fmt(ctx.raw) } } }
+      };
+
+      // Calculate max slider value for budget
+      const maxBudget = results ? Math.round(results.afterTaxMonthly * 0.9) : 5000;
+
+      return (
+        <div style={{ minHeight: '100vh', background: T.cream, paddingTop: 80 }}>
+          {loading && <div className="loading-bar" />}
+
+          {/* Hero Budget Selector */}
+          <div style={{ background: `linear-gradient(135deg, ${T.navyDark} 0%, ${T.navy} 100%)`, padding: '48px 24px 40px' }}>
+            <div style={{ maxWidth: 700, margin: '0 auto', textAlign: 'center' }}>
+              <p style={{ fontSize: 13, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.15em', color: T.blue, marginBottom: 12 }}>Financial Planning Tool</p>
+              <h1 style={{ fontFamily: T.fontDisplay, fontSize: 'clamp(1.6rem, 4vw, 2.2rem)', fontWeight: 500, color: T.white, marginBottom: 8 }}>Optimize My Savings</h1>
+              <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.7)', marginBottom: 28, maxWidth: 500, margin: '0 auto 28px' }}>
+                Set your monthly savings budget and see how it's optimally allocated across your financial goals.
+              </p>
+
+              <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)', marginBottom: 8 }}>I CAN SAVE THIS MUCH PER MONTH</div>
+              <div style={{ fontSize: 'clamp(2.5rem, 6vw, 3.5rem)', fontWeight: 700, color: T.white, marginBottom: 16, fontFamily: T.fontBody }}>{fmt(monthlyBudget)}</div>
+              <div style={{ padding: '0 20px' }}>
+                <input type="range" className="jng-slider hero-slider" min={100} max={maxBudget} step={25}
+                  value={monthlyBudget} onChange={e => setMonthlyBudget(Number(e.target.value))} />
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 6 }}>
+                  <span>$100</span>
+                  <span>{results ? results.savingsRate.toFixed(0) : '—'}% of take-home</span>
+                  <span>{fmt(maxBudget)}</span>
+                </div>
+              </div>
+
+              {/* Goal Status */}
+              <div style={{ marginTop: 24, display: 'flex', justifyContent: 'center', gap: 10, flexWrap: 'wrap', opacity: loading ? 0.7 : 1 }}>
+                {results?.allGoalsMet ? (
+                  <div style={{ padding: '10px 24px', background: 'rgba(46,125,50,0.25)', borderRadius: 6, border: '1px solid rgba(46,125,50,0.4)' }}>
+                    <span style={{ color: '#81c784', fontWeight: 600, fontSize: 14 }}>✓ All Goals Met</span>
+                  </div>
+                ) : results && (
+                  <>
+                    {results.budgetDiff < -50 && (
+                      <div style={{ padding: '8px 16px', background: 'rgba(255,255,255,0.1)', borderRadius: 6, fontSize: 13, color: 'rgba(255,255,255,0.8)' }}>
+                        Need <span style={{ color: '#ffb74d', fontWeight: 600 }}>{fmt(results.optimalBudget)}/mo</span> to meet all goals
+                        <span style={{ opacity: 0.6 }}> ({fmt(Math.abs(results.budgetDiff))} more)</span>
+                      </div>
+                    )}
+                    {!results.retireMet && (
+                      <div style={{ padding: '6px 12px', background: 'rgba(255,183,77,0.15)', borderRadius: 6, fontSize: 12, color: '#ffb74d' }}>
+                        Retirement: {fmtK(results.retirementShortfall)} short
+                      </div>
+                    )}
+                    {!results.collegeMet && hasKids && (
+                      <div style={{ padding: '6px 12px', background: 'rgba(255,183,77,0.15)', borderRadius: 6, fontSize: 12, color: '#ffb74d' }}>
+                        College: {fmtK(results.collegeShortfall)} short
+                      </div>
+                    )}
+                  </>
+                )}
+                {results?.budgetDiff > 50 && (
+                  <div style={{ padding: '8px 16px', background: 'rgba(46,125,50,0.2)', borderRadius: 6, fontSize: 13, color: '#81c784' }}>
+                    Saving <span style={{ fontWeight: 600 }}>{fmt(results.budgetDiff)}/mo</span> above what's needed
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Main Layout */}
+          <div style={{ maxWidth: 1200, margin: '0 auto', padding: '24px',
+            display: 'grid', gridTemplateColumns: '340px 1fr', gap: 24, alignItems: 'start' }}>
+
+            {/* LEFT: Inputs */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <Card title="Income">
+                <Slider label="Annual Gross Income" value={income} onChange={setIncome} min={30000} max={500000} step={2000} />
+                <div style={{ fontSize: 12, color: T.g400, background: T.g100, padding: '6px 10px', borderRadius: 4 }}>
+                  Take-home: {results ? fmt(results.afterTaxMonthly) : '—'}/mo · Net worth: <span style={{ color: results?.netWorth >= 0 ? T.green : T.red }}>{results ? fmtK(results.netWorth) : '—'}</span>
+                </div>
+              </Card>
+
+              <Card title="Current Balances">
+                <Slider label="Emergency Fund" value={emergencyBal} onChange={setEmergencyBal} min={0} max={50000} step={250} />
+                <Slider label="Months of Expenses" value={emergencyMonths} onChange={setEmergencyMonths} min={1} max={12} unit=" mo" />
+                <Slider label="Retirement Accounts" value={retirementBal} onChange={setRetirementBal} min={0} max={1000000} step={2500} />
+                <Slider label="College 529" value={collegeBal} onChange={setCollegeBal} min={0} max={200000} step={500} />
+                <Slider label="Brokerage" value={brokerageBal} onChange={setBrokerageBal} min={0} max={500000} step={500} />
+              </Card>
+
+              <Card title="Debts">
+                <div style={{ marginBottom: 14 }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: T.red, marginBottom: 6 }}>Credit Card</div>
+                  <Slider label="Balance" value={ccBal} onChange={setCcBal} min={0} max={50000} step={250} />
+                  <Slider label="APR" value={ccApr} onChange={setCcApr} min={0} max={30} step={0.1} unit="%" />
+                  <Slider label="Payoff Target" value={ccPayoffYears} onChange={setCcPayoffYears} min={1} max={7} unit=" yr" />
+                </div>
+                <div style={{ marginBottom: 14 }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: T.orange, marginBottom: 6 }}>Auto Loan</div>
+                  <Slider label="Balance" value={autoBal} onChange={setAutoBal} min={0} max={60000} step={250} />
+                  <Slider label="APR" value={autoApr} onChange={setAutoApr} min={0} max={15} step={0.1} unit="%" />
+                  <Slider label="Payoff Target" value={autoPayoffYears} onChange={setAutoPayoffYears} min={1} max={7} unit=" yr" />
+                </div>
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: T.purple, marginBottom: 6 }}>Student Loan</div>
+                  <Slider label="Balance" value={slBal} onChange={setSlBal} min={0} max={200000} step={500} />
+                  <Slider label="APR" value={slApr} onChange={setSlApr} min={0} max={12} step={0.1} unit="%" />
+                  <Slider label="Payoff Target" value={slPayoffYears} onChange={setSlPayoffYears} min={1} max={25} unit=" yr" />
+                </div>
+              </Card>
+
+              <Card title="Retirement">
+                <Slider label="Current Age" value={currentAge} onChange={setCurrentAge} min={18} max={70} unit="" />
+                <Slider label="Retirement Age" value={retireAge} onChange={setRetireAge} min={50} max={75} unit="" />
+                <Slider label="Income Replacement" value={retireIncomePct} onChange={setRetireIncomePct} min={50} max={100} unit="%" />
+                <Slider label="Life Expectancy" value={lifeExpectancy} onChange={setLifeExpectancy} min={70} max={100} unit="" />
+                <Toggle label="Have 401(k) with match?" value={has401k} onChange={setHas401k} />
+                {has401k && (
+                  <>
+                    <Slider label="Employer Match %" value={matchPercent} onChange={setMatchPercent} min={0} max={100} unit="%" />
+                    <Slider label="Match Up To % of Salary" value={matchUpTo} onChange={setMatchUpTo} min={0} max={15} step={0.1} unit="%" />
+                  </>
+                )}
+              </Card>
+
+              <Card title="College Savings">
+                <Toggle label="Saving for college?" value={hasKids} onChange={setHasKids} />
+                {hasKids && (
+                  <>
+                    <Slider label="Number of Children" value={numKids} onChange={setNumKids} min={1} max={5} unit="" />
+                    {Array.from({ length: numKids }).map((_, i) => (
+                      <Slider key={i} label={`Child ${i+1} Age`} value={kidAges[i]||0} onChange={v => updateKidAge(i, v)} min={0} max={17} unit="" />
+                    ))}
+                    <Slider label="Annual Cost (today's $)" value={collegeCostYear} onChange={setCollegeCostYear} min={10000} max={100000} step={500} />
+                    <Slider label="Years of College" value={collegeYears} onChange={setCollegeYears} min={1} max={6} unit=" yr" />
+                  </>
+                )}
+              </Card>
+            </div>
+
+            {/* RIGHT: Results */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16, opacity: loading ? 0.7 : 1, transition: 'opacity 0.2s' }}>
+              {/* Summary metrics */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
+                <Card style={{ textAlign: 'center', padding: '14px 12px' }}>
+                  <div style={{ fontSize: 11, color: T.g600, marginBottom: 4 }}>Emergency Target</div>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: T.navy }}>{results ? fmtK(results.emergencyTarget) : '—'}</div>
+                  <div style={{ fontSize: 11, color: results?.emergencyGap > 0 ? T.orange : T.green }}>{results ? (results.emergencyGap > 0 ? fmtK(results.emergencyGap) + ' gap' : '✓ Funded') : '—'}</div>
+                </Card>
+                <Card style={{ textAlign: 'center', padding: '14px 12px' }}>
+                  <div style={{ fontSize: 11, color: T.g600, marginBottom: 4 }}>Total Debt</div>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: results?.totalDebt > 0 ? T.red : T.green }}>{results ? fmtK(results.totalDebt) : '—'}</div>
+                  <div style={{ fontSize: 11, color: T.g400 }}>{results ? fmt(results.totalDebtPmt) : '—'}/mo</div>
+                </Card>
+                <Card style={{ textAlign: 'center', padding: '14px 12px' }}>
+                  <div style={{ fontSize: 11, color: T.g600, marginBottom: 4 }}>Retirement Target</div>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: T.navy }}>{results ? fmtK(results.retireTarget) : '—'}</div>
+                  <div style={{ fontSize: 11, color: T.g400 }}>{results ? results.yearsToRetire : '—'} years</div>
+                </Card>
+                <Card style={{ textAlign: 'center', padding: '14px 12px' }}>
+                  <div style={{ fontSize: 11, color: T.g600, marginBottom: 4 }}>College Total</div>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: T.blue }}>{results ? fmt(results.totalCollegeMonthly) : '—'}/mo</div>
+                  <div style={{ fontSize: 11, color: T.g400 }}>{hasKids ? numKids + ' child' + (numKids>1?'ren':'') : 'N/A'}</div>
+                </Card>
+              </div>
+
+              {/* Allocation Pie */}
+              {allocData && (
+                <Card title="Current Month Allocation">
+                  <ChartCanvas type="doughnut" data={allocData} options={pieOpts} height={220} />
+                </Card>
+              )}
+
+              {/* Projection Chart */}
+              {chartData && (
+                <Card title="Wealth Projection">
+                  <ChartCanvas type="line" data={chartData} options={chartOpts} height={260} />
+                </Card>
+              )}
+
+              {/* Timeline Table */}
+              {results?.timeline?.length > 0 && (
+                <Card title="Year-by-Year Timeline">
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                      <thead>
+                        <tr style={{ borderBottom: '2px solid ' + T.g200 }}>
+                          {['Year', 'Age', 'Emergency', 'Debt', 'Retirement', 'College', 'Net Worth'].map(h => (
+                            <th key={h} style={{ textAlign: h==='Year'||h==='Age' ? 'left' : 'right', padding: '8px 8px',
+                              color: T.g600, fontWeight: 600, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {results.timeline.filter((_,i) => i%2===0 || i===results.timeline.length-1).slice(0,20).map((t,i) => (
+                          <tr key={i} style={{ borderBottom: '1px solid ' + T.g200 }}>
+                            <td style={{ padding: '5px 8px', fontWeight: 500, color: T.navyDark }}>{t.year}</td>
+                            <td style={{ padding: '5px 8px', color: T.g600 }}>{t.age}</td>
+                            <td style={{ padding: '5px 8px', textAlign: 'right', color: t.emergency >= (results.emergencyTarget || 0) ? T.green : T.text }}>{fmtK(t.emergency)}</td>
+                            <td style={{ padding: '5px 8px', textAlign: 'right', color: t.totalDebt === 0 ? T.green : T.red }}>{fmtK(t.totalDebt)}</td>
+                            <td style={{ padding: '5px 8px', textAlign: 'right', color: T.navy, fontWeight: 500 }}>{fmtK(t.retirement)}</td>
+                            <td style={{ padding: '5px 8px', textAlign: 'right', color: T.blue }}>{fmtK(t.college)}</td>
+                            <td style={{ padding: '5px 8px', textAlign: 'right', fontWeight: 600, color: t.netWorth >= 0 ? T.navy : T.red }}>{fmtK(t.netWorth)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </Card>
+              )}
+
+              {/* CTA */}
+              <div style={{ background: `linear-gradient(135deg, ${T.navy} 0%, ${T.navyDark} 100%)`, borderRadius: 8, padding: '28px 24px', textAlign: 'center' }}>
+                <h3 style={{ fontFamily: T.fontDisplay, color: T.white, fontSize: 18, marginBottom: 6 }}>Want help building your plan?</h3>
+                <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: 14, marginBottom: 16, maxWidth: 380, margin: '0 auto 16px' }}>
+                  Get personalized advice tailored to your tax situation and financial goals.
+                </p>
+                <a href="https://calendly.com/jngtaxadvisory/15-minute-consultation" target="_blank"
+                  style={{ display: 'inline-block', background: T.white, color: T.navy, padding: '10px 24px', borderRadius: 4,
+                    fontFamily: T.fontBody, fontSize: 14, fontWeight: 600, textDecoration: 'none' }}>
+                  Free 15-Minute Consult →
+                </a>
+              </div>
+
+              <div style={{ fontSize: 12, color: T.g400, lineHeight: 1.6 }}>
+                <strong>Disclaimer:</strong> This calculator provides estimates for educational purposes only and does not constitute financial,
+                tax, or investment advice. Uses simplified assumptions including a flat 28% effective tax rate,
+                time-horizon-based returns (3%/5%/7%), and 5% college cost inflation.
+                Actual results will vary. Consult a qualified professional before making financial decisions.
+              </div>
+            </div>
+          </div>
+
+          <style>{`@media (max-width: 900px) { [style*="grid-template-columns: 340px"] { grid-template-columns: 1fr !important; } [style*="grid-template-columns: repeat(4"] { grid-template-columns: repeat(2, 1fr) !important; } }`}</style>
+
+          {/* Footer */}
+          <footer className="site-footer">
+            <div className="container">
+              <div className="footer-content">
+                <div className="footer-brand">
+                  <a href="../index.html" className="logo">
+                    <div className="logo-icon" style={{ width: 30, height: 30 }}>
+                      <svg viewBox="0 0 24 24" style={{ width: 16, height: 16 }}><rect x="4" y="14" width="4" height="6" fill="white"/><rect x="10" y="10" width="4" height="10" fill="white"/><rect x="16" y="6" width="4" height="14" fill="white"/></svg>
+                    </div>
+                    JNG Tax & Advisory
+                  </a>
+                  <p>Tax planning and preparation for professionals and small businesses in Monmouth County, NJ.</p>
+                </div>
+                <div className="footer-links">
+                  <h4>Quick Links</h4>
+                  <ul>
+                    <li><a href="../index.html">Home</a></li>
+                    <li><a href="../pricing.html">Pricing</a></li>
+                    <li><a href="../about.html">About</a></li>
+                    <li><a href="../tools.html">Tools & Insights</a></li>
+                  </ul>
+                </div>
+                <div className="footer-links">
+                  <h4>Contact</h4>
+                  <ul>
+                    <li><a href="tel:7324408290">(732) 440-8290</a></li>
+                    <li><a href="mailto:neill@jngtaxadvisory.com">neill@jngtaxadvisory.com</a></li>
+                    <li>Shrewsbury, NJ</li>
+                  </ul>
+                </div>
+              </div>
+              <div className="footer-bottom">
+                <p>© 2026 JNG Tax & Advisory. All rights reserved.</p>
+                <p>CFA® | Enrolled Agent | IRS PTIN Holder</p>
+              </div>
+            </div>
+          </footer>
+        </div>
+      );
+    };
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<Planner />);
+  </script>
+
+  <script>
+    document.getElementById('menu-toggle').addEventListener('click', () => {
+      document.getElementById('nav-links').classList.toggle('active');
+    });
+  </script>
+</body>
+</html>

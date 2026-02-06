@@ -1,0 +1,13 @@
+{
+  "name": "wevest-planners",
+  "version": "1.0.0",
+  "description": "WeVest Financial Planning Tools - Netlify Functions Backend",
+  "private": true,
+  "scripts": {
+    "dev": "netlify dev",
+    "build": "echo 'No build step required'"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.0.0"
+  }
+}
