@@ -1,0 +1,102 @@
+name: Claude Code
+
+on:
+  issues:
+    types: [opened, labeled]
+  issue_comment:
+    types: [created]
+
+jobs:
+  claude:
+    if: |
+      (github.event_name == 'issue_comment' && contains(github.event.issue.labels.*.name, 'claude')) ||
+      (github.event_name == 'issues' && contains(github.event.issue.labels.*.name, 'claude'))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          npm install -g @anthropic-ai/claude-code
+          npm install || true
+
+      - name: Run Claude Code
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ "${{ github.event_name }}" = "issue_comment" ]; then
+            PROMPT=$(cat <<'PROMPT_EOF'
+          ${{ github.event.comment.body }}
+          PROMPT_EOF
+            )
+          else
+            PROMPT=$(cat <<'PROMPT_EOF'
+          ${{ github.event.issue.title }}
+
+          ${{ github.event.issue.body }}
+          PROMPT_EOF
+            )
+          fi
+
+          echo "Running Claude Code with prompt..."
+          claude -p "$PROMPT" --output-format stream-json 2>&1 | tee claude-raw.txt
+
+          # Extract the final result
+          claude -p "$PROMPT" > claude-output.txt 2>&1 || true
+
+      - name: Create branch and PR if files changed
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            BRANCH="claude/issue-${{ github.event.issue.number }}-$(date +%s)"
+            git checkout -b "$BRANCH"
+            git config user.name "Claude Code"
+            git config user.email "claude@anthropic.com"
+            git add -A
+            git commit -m "Changes from Claude Code (issue #${{ github.event.issue.number }})"
+            git push origin "$BRANCH"
+            gh pr create \
+              --title "Claude: ${{ github.event.issue.title }}" \
+              --body "Automated changes from Claude Code in response to #${{ github.event.issue.number }}" \
+              --base main \
+              --head "$BRANCH"
+            PR_URL=$(gh pr view "$BRANCH" --json url -q '.url')
+            echo "PR_URL=$PR_URL" >> $GITHUB_ENV
+          fi
+
+      - name: Comment on Issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let output = 'Done - no code changes were needed.';
+            try {
+              output = fs.readFileSync('claude-output.txt', 'utf8').trim();
+            } catch (e) {}
+
+            let body = `## Claude Code Response\n\n${output}`;
+
+            const prUrl = process.env.PR_URL;
+            if (prUrl) {
+              body += `\n\n---\nPull request with changes: ${prUrl}`;
+            }
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: body
+            });
