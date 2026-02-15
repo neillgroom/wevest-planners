@@ -50,11 +50,7 @@ jobs:
             )
           fi
 
-          echo "Running Claude Code with prompt..."
-          claude -p "$PROMPT" --output-format stream-json 2>&1 | tee claude-raw.txt
-
-          # Extract the final result
-          claude -p "$PROMPT" > claude-output.txt 2>&1 || true
+          claude -p "$PROMPT" > /tmp/claude-output.txt 2>&1 || true
 
       - name: Create branch and PR if files changed
         env:
@@ -78,13 +74,14 @@ jobs:
           fi
 
       - name: Comment on Issue
+        if: always()
         uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');
             let output = 'Done - no code changes were needed.';
             try {
-              output = fs.readFileSync('claude-output.txt', 'utf8').trim();
+              output = fs.readFileSync('/tmp/claude-output.txt', 'utf8').trim();
             } catch (e) {}
 
             let body = `## Claude Code Response\n\n${output}`;
