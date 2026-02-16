@@ -50,7 +50,7 @@ jobs:
             )
           fi
 
-          claude -p "$PROMPT" > /tmp/claude-output.txt 2>&1 || true
+          claude -p "$PROMPT" --dangerously-skip-permissions > /tmp/claude-output.txt 2>&1 || true
 
       - name: Create branch and PR if files changed
         env:
